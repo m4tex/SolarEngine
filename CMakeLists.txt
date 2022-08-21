@@ -3,4 +3,4 @@ project(SolarEngine)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(SolarEngine main.cpp)
+add_executable(SolarEngine src/main.cpp)
