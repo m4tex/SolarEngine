@@ -1,4 +1,8 @@
 #include <windows.h>
+#include <string.h>
+
+#define REND_WIDTH 512
+#define REND_HEIGHT 512
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -18,7 +22,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
                                 "SolarEngine",
                                 WS_OVERLAPPEDWINDOW,
                                 CW_USEDEFAULT, CW_USEDEFAULT,
-                                500, 500,
+                                REND_WIDTH, REND_HEIGHT,
                                 nullptr,
                                 nullptr,
                                 hInst,
@@ -27,10 +31,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
     ShowWindow(hwnd, cmdshow);
 
     MSG msg;
+    PAINTSTRUCT ps;
 
-    MessageBoxA(hwnd, "OwO", "Hewwow", MB_OK);
+    COLORREF buffer[REND_HEIGHT*REND_HEIGHT] = {  };
 
     while (true) {
+        //#region Message Handling
         if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
@@ -38,11 +44,34 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
 
         if (msg.message == WM_QUIT)
             break;
+        //#endregion
 
-        PAINTSTRUCT ps;
+        //#region Draw a bitmap from buffer
+        HBITMAP bitmap = CreateBitmap(REND_WIDTH,
+                                      REND_HEIGHT,
+                                      1,
+                                      8*4,
+                                      buffer);
+
         HDC deviceCtx = BeginPaint(hwnd, &ps);
+        HDC srcHdc = CreateCompatibleDC(deviceCtx);
+
+        SelectObject(srcHdc, bitmap);
+
+        BitBlt(deviceCtx,
+               0, 0,
+               500, 500,
+               srcHdc,
+               0, 0,
+               SRCCOPY);
+
         EndPaint(hwnd, &ps);
-        //Engine Loop
+
+        DeleteObject(bitmap);
+        DeleteDC(srcHdc);
+        //#endregion
+
+        Sleep(2.5);
     }
     return 0;
 }
