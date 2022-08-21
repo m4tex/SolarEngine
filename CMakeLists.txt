@@ -3,4 +3,4 @@ project(SolarEngine)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(SolarEngine src/main.cpp include/engine-methods.h)
+add_executable(SolarEngine src/main.cpp include/engine-methods.h src/engine-methods.cpp)

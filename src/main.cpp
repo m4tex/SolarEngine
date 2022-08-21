@@ -1,5 +1,7 @@
 #include <windows.h>
-#include <string.h>
+#include <string>
+#include <chrono>
+#include "../include/engine-methods.h"
 
 #define REND_WIDTH 512
 #define REND_HEIGHT 512
@@ -7,6 +9,8 @@
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
+    //#region Creating and showing the engine window
+    const std::string WINDOW_NAME = "Solar Engine";
     const char CLASS_NAME[] = "SolarEngineWindow";
 
     WNDCLASS wc = {};
@@ -19,7 +23,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
 
     HWND hwnd = CreateWindowExA(0,
                                 CLASS_NAME,
-                                "SolarEngine",
+                                WINDOW_NAME.c_str(),
                                 WS_OVERLAPPEDWINDOW,
                                 CW_USEDEFAULT, CW_USEDEFAULT,
                                 REND_WIDTH, REND_HEIGHT,
@@ -29,12 +33,16 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
                                 nullptr);
 
     ShowWindow(hwnd, cmdshow);
+    //#endregion
 
     MSG msg;
     PAINTSTRUCT ps;
+    int FPS;
+    auto t_fps_old = std::chrono::high_resolution_clock::now();
 
-    COLORREF buffer[REND_HEIGHT*REND_HEIGHT] = {  };
+    COLORREF frameBuffer[REND_HEIGHT * REND_HEIGHT] = {  };
 
+    //Engine loop
     while (true) {
         //#region Message Handling
         if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -46,12 +54,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
             break;
         //#endregion
 
-        //#region Draw a bitmap from buffer
+        float p1[2] = {100, 100};
+        float p2[2] = {200, 300};
+
+        EngineMethods::DrawLine(p1, p2, RGB(255,255,255), frameBuffer);
+
+        //#region Draw a bitmap from frameBuffer
         HBITMAP bitmap = CreateBitmap(REND_WIDTH,
                                       REND_HEIGHT,
                                       1,
                                       8*4,
-                                      buffer);
+                                      frameBuffer);
 
         HDC deviceCtx = BeginPaint(hwnd, &ps);
         HDC srcHdc = CreateCompatibleDC(deviceCtx);
@@ -71,7 +84,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
         DeleteDC(srcHdc);
         //#endregion
 
-        Sleep(2.5);
+        //#region FPS Display
+        auto t_fps_new = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> dt = t_fps_new - t_fps_old;
+        FPS = 1/dt.count();
+        SetWindowTextA(hwnd, (WINDOW_NAME + " FPS: " + std::to_string(FPS)).c_str());
+        t_fps_old = t_fps_new;
+        //#endregion
     }
     return 0;
 }
