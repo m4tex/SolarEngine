@@ -54,10 +54,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
             break;
         //#endregion
 
-        float p1[2] = {100, 100};
-        float p2[2] = {200, 300};
-
-        EngineMethods::DrawLine(p1, p2, RGB(255,255,255), frameBuffer);
+        EngineMethods::DrawLine({0, 0},
+                                {450, 450},
+                                RGB(255,255,255),
+                                frameBuffer,
+                                REND_WIDTH,
+                                REND_HEIGHT);
 
         //#region Draw a bitmap from frameBuffer
         HBITMAP bitmap = CreateBitmap(REND_WIDTH,
