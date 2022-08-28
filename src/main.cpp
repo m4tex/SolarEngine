@@ -8,7 +8,7 @@
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     //#region Creating and showing the engine window
     const std::string WINDOW_NAME = "Solar Engine";
     const char CLASS_NAME[] = "SolarEngineWindow";
@@ -32,7 +32,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
                                 hInst,
                                 nullptr);
 
-    ShowWindow(hwnd, cmdshow);
+    ShowWindow(hwnd, nCmdShow);
     //#endregion
 
     MSG msg;
@@ -40,7 +40,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
     int FPS;
     auto t_fps_old = std::chrono::high_resolution_clock::now();
 
-    COLORREF frameBuffer[REND_HEIGHT * REND_HEIGHT] = {  };
+    COLORREF frameBuffer[262144] = {  };
 
     //Engine loop
     while (true) {
@@ -54,12 +54,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int cmdshow) {
             break;
         //#endregion
 
-        EngineMethods::DrawLine({0, 0},
-                                {450, 450},
-                                RGB(255,255,255),
-                                frameBuffer,
-                                REND_WIDTH,
-                                REND_HEIGHT);
+//        EngineMethods::DrawLine({0, 0},
+//                                {450, 450},
+//                                RGB(255,255,255),
+//                                frameBuffer,
+//                                REND_WIDTH,
+//                                REND_HEIGHT);
 
         //#region Draw a bitmap from frameBuffer
         HBITMAP bitmap = CreateBitmap(REND_WIDTH,
