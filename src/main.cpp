@@ -35,17 +35,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     ShowWindow(hwnd, nCmdShow);
     //#endregion
 
+    //#region CreateConsoleWindow
+
+
+    //#endregion
+
     MSG msg;
     PAINTSTRUCT ps;
     int FPS;
     auto t_fps_old = std::chrono::high_resolution_clock::now();
 
     COLORREF *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT];
-
-    for (int i = 0; i < REND_WIDTH * REND_HEIGHT; ++i) {
-        frameBuffer[i] = 0;
-    }
-
 
     //Engine loop
     while (true) {
