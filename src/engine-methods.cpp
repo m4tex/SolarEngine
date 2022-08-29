@@ -12,7 +12,7 @@ namespace EngineMethods {
 
         //I am so sure this won't work lol
         for (int i = 0; i < (int) p2.x - p1.x; i++) {
-            pBuffer[(int) (p1.x + i + k * i * height)] = ((int) (p1.x + i) > width && (int) (p1.x + i) < width) * color;
+            pBuffer[(int) (p1.x + i + k * i * height)] = ((int) (p1.x + i) < width) * color;
         }
     }
 }

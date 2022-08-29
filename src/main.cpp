@@ -1,12 +1,20 @@
 #include <windows.h>
 #include <string>
 #include <chrono>
+#include <string>
 #include "../include/engine-methods.h"
 
 #define REND_WIDTH 512
 #define REND_HEIGHT 512
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+HANDLE hCslOut;
+
+void Debug(std::string msg) {
+    msg += '\n';
+    WriteConsoleA(hCslOut, msg.c_str(), msg.length(), nullptr, nullptr);
+}
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     //#region Creating and showing the engine window
@@ -32,20 +40,24 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
                                 hInst,
                                 nullptr);
 
-    ShowWindow(hwnd, nCmdShow);
+    ShowWindow(hwnd, SW_SHOWDEFAULT);
     //#endregion
 
-    //#region CreateConsoleWindow
-
-
-    //#endregion
+    //Console allocation
+    AllocConsole();
+    hCslOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
     MSG msg;
     PAINTSTRUCT ps;
     int FPS;
     auto t_fps_old = std::chrono::high_resolution_clock::now();
 
-    COLORREF *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT];
+    COLORREF *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT] { 0 };
+
+    Debug("Testy test :)");
+
+
+    Debug("Testy test 2 :)");
 
     //Engine loop
     while (true) {
@@ -58,6 +70,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
         if (msg.message == WM_QUIT)
             break;
         //#endregion
+
+        //Frame painting
 
         EngineMethods::DrawLine({0, 0},
                                 {450, 450},
@@ -102,12 +116,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     return 0;
 }
 
-LRESULT CALLBACK WindowProc(HWND windowHandler, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
-        case WM_DESTROY: {
+        case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
-        }
     }
-    return DefWindowProc(windowHandler, uMsg, wParam, lParam);
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
