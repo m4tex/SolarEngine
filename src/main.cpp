@@ -40,7 +40,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     int FPS;
     auto t_fps_old = std::chrono::high_resolution_clock::now();
 
-    COLORREF frameBuffer[262144] = {  };
+    COLORREF *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT];
+
+    for (int i = 0; i < REND_WIDTH * REND_HEIGHT; ++i) {
+        frameBuffer[i] = 0;
+    }
+
 
     //Engine loop
     while (true) {
@@ -54,12 +59,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
             break;
         //#endregion
 
-//        EngineMethods::DrawLine({0, 0},
-//                                {450, 450},
-//                                RGB(255,255,255),
-//                                frameBuffer,
-//                                REND_WIDTH,
-//                                REND_HEIGHT);
+        EngineMethods::DrawLine({0, 0},
+                                {450, 450},
+                                RGB(255,255,255),
+                                frameBuffer,
+                                REND_WIDTH,
+                                REND_HEIGHT);
 
         //#region Draw a bitmap from frameBuffer
         HBITMAP bitmap = CreateBitmap(REND_WIDTH,
