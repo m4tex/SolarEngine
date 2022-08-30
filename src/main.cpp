@@ -1,31 +1,14 @@
 #include <windows.h>
 #include <string>
 #include <chrono>
-#include <string>
 #include "../include/engine-methods.h"
+#include "../include/debug-console.h"
 
 #define REND_WIDTH 512
 #define REND_HEIGHT 512
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK ConsoleWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-
-HANDLE hCslOut;
-HANDLE hCslIn;
-
-char buffer[255];
-
-void Debug(std::string msg) {
-    msg += '\n';
-    WriteConsoleA(hCslOut, msg.c_str(), msg.length(), nullptr, nullptr);
-}
-
-//something doesn't work...
-std::string Input() {
-    ReadConsoleA(hCslIn, buffer, sizeof(buffer), nullptr, nullptr);
-    return buffer;
-}
+LRESULT CALLBACK ConsoleProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     //#region Creating and showing the engine window
@@ -33,7 +16,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     const char CLASS_NAME[] = "SolarEngineWindow";
 
     WNDCLASS wc = {};
-    wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+    wc.hbrBackground = GetSysColorBrush(BLACK_BRUSH);
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInst;
     wc.lpszClassName = CLASS_NAME;
@@ -43,7 +26,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     HWND hwnd = CreateWindowExA(0,
                                 CLASS_NAME,
                                 WINDOW_NAME.c_str(),
-                                WS_OVERLAPPEDWINDOW,
+                                WS_OVERLAPPEDWINDOW | WS_THICKFRAME,
                                 CW_USEDEFAULT, CW_USEDEFAULT,
                                 REND_WIDTH, REND_HEIGHT,
                                 nullptr,
@@ -54,12 +37,18 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     ShowWindow(hwnd, SW_SHOWDEFAULT);
     //#endregion
 
-    //Console allocation
-//    AllocConsole();
-//    hCslOut = GetStdHandle(STD_OUTPUT_HANDLE);
-//    hCslIn = GetStdHandle(STD_INPUT_HANDLE);
+    WNDCLASS cslWnd = {};
+    cslWnd.lpszClassName = "ConsoleWindowClass";
+    cslWnd.lpfnWndProc = ConsoleProc;
 
+    RegisterClass(&cslWnd);
 
+    HWND cslHwnd = CreateWindow("ConsoleWindowClass", "HM", WS_VISIBLE | WS_OVERLAPPEDWINDOW, 50, 50, 100, 100, NULL, NULL, NULL, NULL);
+
+    ShowWindow(cslHwnd, SW_SHOWDEFAULT);
+
+    Console::Attach();
+    Console::Log("Hello, World!!!");
 
     MSG msg;
     PAINTSTRUCT ps;
@@ -130,12 +119,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         case WM_CREATE: {
             HINSTANCE hInst = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE);
 
-            CreateWindow("Button", "HM", WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 10, 150, 50,
+            CreateWindow("BUTTON", "HM", WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 10, 150, 100,
                          hwnd, NULL, hInst, NULL);
 
             return 0;
         }
 
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            return 0;
+    }
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK ConsoleProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    switch (uMsg) {
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
