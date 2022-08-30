@@ -37,26 +37,24 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     ShowWindow(hwnd, SW_SHOWDEFAULT);
     //#endregion
 
-    WNDCLASS cslWnd = {};
-    cslWnd.lpszClassName = "ConsoleWindowClass";
-    cslWnd.lpfnWndProc = ConsoleProc;
+//    WNDCLASS cslWnd = {};
+//    cslWnd.lpszClassName = "ConsoleWindowClass";
+//    cslWnd.lpfnWndProc = ConsoleProc;
+//
+//    RegisterClass(&cslWnd);
+//
+//    HWND cslHwnd = CreateWindow("ConsoleWindowClass", "HM", WS_VISIBLE,
+//                                50, 50, 100, 100, hwnd, NULL, NULL, NULL);
+//
+//    ShowWindow(cslHwnd, SW_SHOWDEFAULT);
 
-    RegisterClass(&cslWnd);
-
-    HWND cslHwnd = CreateWindow("ConsoleWindowClass", "HM", WS_VISIBLE,
-                                50, 50, 100, 100, hwnd, NULL, NULL, NULL);
-
-    ShowWindow(cslHwnd, SW_SHOWDEFAULT);
-
-    Console::Attach();
-
-    HWND csl2 = GetConsoleWindow();
-    SetParent(csl2, hwnd);
-    SetWindowLongPtr(csl2, GWL_STYLE, WS_VISIBLE);
-    SetWindowPos(csl2,0,0,0,0,0,SWP_NOZORDER|SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE|SWP_DRAWFRAME);
-    MoveWindow(csl2, 0, 0, 150, 150, false);
+    Console::Attach(hwnd);
 
     Console::Log("Hello, World!!!");
+
+    Console::SetVisible(false);
+
+    Console::SetVisible(true);
 
     MSG msg;
     PAINTSTRUCT ps;
@@ -124,14 +122,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
-        case WM_CREATE: {
-            HINSTANCE hInst = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE);
-
-            CreateWindow("BUTTON", "HM", WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 10, 150, 100,
-                         hwnd, NULL, hInst, NULL);
-
-            return 0;
-        }
+//        case WM_CREATE: {
+//            HINSTANCE hInst = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE);
+//
+//            CreateWindow("BUTTON", "HM", WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 10, 150, 100,
+//                         hwnd, NULL, hInst, NULL);
+//
+//            return 0;
+//        }
 
         case WM_DESTROY:
             PostQuitMessage(0);

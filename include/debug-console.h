@@ -11,9 +11,10 @@ namespace Console {
     extern HANDLE hCslOut;
     extern HANDLE hCslIn;
 
-    void Attach();
-    void Exists();
+    void Attach(HWND target);
     void Log(std::string msg);
+    void SetVisible(bool visible);
+    void Exists();
 }
 
 #endif //SOLARENGINE_DEBUG_CONSOLE_H
