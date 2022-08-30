@@ -8,12 +8,23 @@
 #define REND_HEIGHT 512
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK ConsoleWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 
 HANDLE hCslOut;
+HANDLE hCslIn;
+
+char buffer[255];
 
 void Debug(std::string msg) {
     msg += '\n';
     WriteConsoleA(hCslOut, msg.c_str(), msg.length(), nullptr, nullptr);
+}
+
+//something doesn't work...
+std::string Input() {
+    ReadConsoleA(hCslIn, buffer, sizeof(buffer), nullptr, nullptr);
+    return buffer;
 }
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
@@ -44,8 +55,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     //#endregion
 
     //Console allocation
-    AllocConsole();
-    hCslOut = GetStdHandle(STD_OUTPUT_HANDLE);
+//    AllocConsole();
+//    hCslOut = GetStdHandle(STD_OUTPUT_HANDLE);
+//    hCslIn = GetStdHandle(STD_INPUT_HANDLE);
+
+
 
     MSG msg;
     PAINTSTRUCT ps;
@@ -53,11 +67,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     auto t_fps_old = std::chrono::high_resolution_clock::now();
 
     COLORREF *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT] { 0 };
-
-    Debug("Testy test :)");
-
-
-    Debug("Testy test 2 :)");
 
     //Engine loop
     while (true) {
@@ -118,6 +127,15 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+        case WM_CREATE: {
+            HINSTANCE hInst = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE);
+
+            CreateWindow("Button", "HM", WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 10, 150, 50,
+                         hwnd, NULL, hInst, NULL);
+
+            return 0;
+        }
+
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
