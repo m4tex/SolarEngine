@@ -17,6 +17,6 @@ namespace Console {
 
     void Log(std::string msg) {
         msg += '\n';
-        WriteConsoleA(hCslOut, msg.c_str(), msg.length(), nullptr, nullptr);
+        WriteConsoleA(hCslOut, msg.c_str(), msg.length(), NULL, NULL);
     }
 }

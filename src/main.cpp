@@ -43,11 +43,19 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
     RegisterClass(&cslWnd);
 
-    HWND cslHwnd = CreateWindow("ConsoleWindowClass", "HM", WS_VISIBLE | WS_OVERLAPPEDWINDOW, 50, 50, 100, 100, NULL, NULL, NULL, NULL);
+    HWND cslHwnd = CreateWindow("ConsoleWindowClass", "HM", WS_VISIBLE,
+                                50, 50, 100, 100, hwnd, NULL, NULL, NULL);
 
     ShowWindow(cslHwnd, SW_SHOWDEFAULT);
 
     Console::Attach();
+
+    HWND csl2 = GetConsoleWindow();
+    SetParent(csl2, hwnd);
+    SetWindowLongPtr(csl2, GWL_STYLE, WS_VISIBLE);
+    SetWindowPos(csl2,0,0,0,0,0,SWP_NOZORDER|SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE|SWP_DRAWFRAME);
+    MoveWindow(csl2, 0, 0, 150, 150, false);
+
     Console::Log("Hello, World!!!");
 
     MSG msg;
