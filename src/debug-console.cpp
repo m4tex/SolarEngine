@@ -21,7 +21,7 @@ namespace Console {
         SetWindowLongPtr(cslHwnd, GWL_STYLE, WS_VISIBLE | WS_CHILD);
         SetWindowPos(cslHwnd,0,0,0,0,0,
                      SWP_NOZORDER|SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE|SWP_DRAWFRAME);
-        MoveWindow(cslHwnd, 0, 0, 256, 512-50, false);
+        MoveWindow(cslHwnd, 0, 0, 256, 512, false);
     }
 
     void SetVisible(bool vis) {

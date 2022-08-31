@@ -38,6 +38,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
     Console::Attach(hwnd);
 
+    std::string test = "Hello, World.";
+
+    WriteConsoleA(Console::hCslOut, test.c_str(), test.length(), NULL, NULL);
+
     MSG msg;
     PAINTSTRUCT ps;
     int FPS;
@@ -58,6 +62,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
         //#endregion
 
         //Frame painting
+
 
         EngineMethods::DrawLine({0, 0},
                                 {450, 450},
@@ -119,7 +124,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 
         case WM_PAINT:
-            Console::Log("Main Proc");
+//            Console::Log("Main Proc");
             return 0;
 
 
