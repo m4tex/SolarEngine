@@ -37,24 +37,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     ShowWindow(hwnd, SW_SHOWDEFAULT);
     //#endregion
 
-//    WNDCLASS cslWnd = {};
-//    cslWnd.lpszClassName = "ConsoleWindowClass";
-//    cslWnd.lpfnWndProc = ConsoleProc;
-//
-//    RegisterClass(&cslWnd);
-//
-//    HWND cslHwnd = CreateWindow("ConsoleWindowClass", "HM", WS_VISIBLE,
-//                                50, 50, 100, 100, hwnd, NULL, NULL, NULL);
-//
-//    ShowWindow(cslHwnd, SW_SHOWDEFAULT);
-
     Console::Attach(hwnd);
-
-    Console::Log("Hello, World!!!");
-
-    Console::SetVisible(false);
-
-    Console::SetVisible(true);
 
     MSG msg;
     PAINTSTRUCT ps;
@@ -76,6 +59,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
         //#endregion
 
         //Frame painting
+
+        RECT clientArea;
+        GetClientRect(hwnd, &clientArea);
+
+        Console::Log(std::to_string(clientArea.bottom) + " " + std::to_string(clientArea.right));
 
         EngineMethods::DrawLine({0, 0},
                                 {450, 450},
@@ -122,24 +110,20 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
-//        case WM_CREATE: {
-//            HINSTANCE hInst = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE);
-//
-//            CreateWindow("BUTTON", "HM", WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 10, 150, 100,
-//                         hwnd, NULL, hInst, NULL);
-//
-//            return 0;
-//        }
-
-        case WM_DESTROY:
-            PostQuitMessage(0);
+        case WM_CHAR:
+            switch(EngineMethods::ToLower((char)wParam)) {
+                case 'c':
+                    Console::ToggleVis();
+                    break;
+            }
             return 0;
-    }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
 
-LRESULT CALLBACK ConsoleProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
+
+        case WM_PAINT:
+            Console::Log("Main Proc");
+            return 0;
+
+
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;

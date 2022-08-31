@@ -9,6 +9,7 @@
 
 namespace EngineMethods {
     void DrawLine(Vec2 p1, Vec2 p2, COLORREF color, COLORREF *lpBitBuffer, int width, int height);
+    char ToLower(char c);
 }
 
 #endif //SOLARENGINE_ENGINE_METHODS_H

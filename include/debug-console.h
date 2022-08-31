@@ -4,16 +4,18 @@
 
 #ifndef SOLARENGINE_DEBUG_CONSOLE_H
 #define SOLARENGINE_DEBUG_CONSOLE_H
-#include <consoleapi.h>
+#include <windows.h>
 #include <string>
 
 namespace Console {
     extern HANDLE hCslOut;
     extern HANDLE hCslIn;
+    extern bool visible;
 
     void Attach(HWND target);
     void Log(std::string msg);
-    void SetVisible(bool visible);
+    void SetVisible(bool vis);
+    void ToggleVis();
     void Exists();
 }
 

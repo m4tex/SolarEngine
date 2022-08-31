@@ -15,4 +15,9 @@ namespace EngineMethods {
             pBuffer[(int) (p1.x + i + k * i * height)] = ((int) (p1.x + i) < width) * color;
         }
     }
+
+    char ToLower(char c){
+        if (c > 64 && c < 91) return c + 32;
+        return c;
+    }
 }
