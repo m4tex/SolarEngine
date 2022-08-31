@@ -21,12 +21,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     wc.hInstance = hInst;
     wc.lpszClassName = CLASS_NAME;
 
-    RegisterClassA(&wc);
+    RegisterClass(&wc);
 
-    HWND hwnd = CreateWindowExA(0,
-                                CLASS_NAME,
+    HWND hwnd = CreateWindow(   CLASS_NAME,
                                 WINDOW_NAME.c_str(),
-                                WS_OVERLAPPEDWINDOW | WS_THICKFRAME,
+                                WS_OVERLAPPEDWINDOW,
                                 CW_USEDEFAULT, CW_USEDEFAULT,
                                 REND_WIDTH, REND_HEIGHT,
                                 nullptr,
@@ -44,7 +43,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     int FPS;
     auto t_fps_old = std::chrono::high_resolution_clock::now();
 
-    COLORREF *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT] { 0 };
+    auto *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT] { 0 };
 
     //Engine loop
     while (true) {
@@ -59,11 +58,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
         //#endregion
 
         //Frame painting
-
-        RECT clientArea;
-        GetClientRect(hwnd, &clientArea);
-
-        Console::Log(std::to_string(clientArea.bottom) + " " + std::to_string(clientArea.right));
 
         EngineMethods::DrawLine({0, 0},
                                 {450, 450},
@@ -110,10 +104,15 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+        //hook and listen for it globally? would be nice for debugging....
         case WM_CHAR:
             switch(EngineMethods::ToLower((char)wParam)) {
                 case 'c':
                     Console::ToggleVis();
+                    break;
+
+                case 't':
+                    PostQuitMessage(0);
                     break;
             }
             return 0;
