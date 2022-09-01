@@ -8,7 +8,6 @@
 #define REND_HEIGHT 512
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK ConsoleProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     //#region Creating and showing the engine window
@@ -24,11 +23,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     RegisterClass(&wc);
 
     RECT rect = { 0, 0, REND_WIDTH, REND_HEIGHT };
-    AdjustWindowRect(&rect, WS_THICKFRAME | WS_CAPTION, false);
+    AdjustWindowRect(&rect, WS_CAPTION, false);
 
     HWND hwnd = CreateWindow(   CLASS_NAME,
                                 WINDOW_NAME.c_str(),
-                                WS_THICKFRAME | WS_CAPTION,
+                                WS_SYSMENU | WS_CAPTION,
                                 CW_USEDEFAULT, CW_USEDEFAULT,
                                 rect.right - rect.left, rect.bottom - rect.top,
                                 nullptr,
@@ -43,20 +42,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
     Console::Attach(hwnd);
 
-    RECT test;
-    RECT test2;
-    GetClientRect(hwnd, &test);
-    GetWindowRect(hwnd, &test2);
-
-    Console::Log(std::to_string(test.top) + " " + std::to_string(test.left) + " " + std::to_string(test.right) + " " + std::to_string(test.bottom));
-    Console::Log(std::to_string(test2.top) + " " + std::to_string(test2.left) + " " + std::to_string(test2.right) + " " + std::to_string(test2.bottom));
-
+    //#region Loop Fields
     MSG msg;
     PAINTSTRUCT ps;
     int FPS;
     auto t_fps_old = std::chrono::high_resolution_clock::now();
-
     auto *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT] { 0 };
+    //#endregion
 
     //Engine loop
     while (true) {
@@ -71,11 +63,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
         //#endregion
 
         //Frame painting
-
-
         EngineMethods::DrawLine({0, 0},
-                                {450, 450},
-                                RGB(255,255,255),
+                                {500, 512},
+                                RGB(255, 0, 0),
                                 frameBuffer,
                                 REND_WIDTH,
                                 REND_HEIGHT);
@@ -94,7 +84,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
         BitBlt(deviceCtx,
                0, 0,
-               500, 500,
+               REND_WIDTH, REND_HEIGHT,
                srcHdc,
                0, 0,
                SRCCOPY);
