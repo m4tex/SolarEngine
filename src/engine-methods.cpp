@@ -3,8 +3,11 @@
 //
 
 #include "../include/engine-methods.h"
+#include "../include/debug-console.h"
 
 namespace EngineMethods {
+    bool logged = false;
+
     void DrawLine(Vec2 p1, Vec2 p2, COLORREF color, COLORREF *pBuffer, int width, int height) {
         float k;
 
@@ -12,7 +15,14 @@ namespace EngineMethods {
 
         //I am so sure this won't work lol
         for (int i = 0; i < (int) p2.x - p1.x; i++) {
-            pBuffer[(int) (p1.x + i + k * i * height)] = ((int) (p1.x + i) < width) * color;
+            pBuffer[(int) (p1.x + i + (k * i * height))] = ((int) (p1.x + i) < width) * color;
+
+            //Logs 10 first steps of the algoritm
+            if(i < 10 && !logged) {
+                Console::Log(std::to_string(i) + " " + std::to_string((int) (p1.x + i + k * i * height) - i*height));
+            } else {
+                logged = true;
+            }
         }
     }
 

@@ -41,6 +41,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
     //#endregion
 
     Console::Attach(hwnd);
+    Console::Log("----------------------------\n"
+                 "    Solar Engine by m4tex \n"
+                 "----------------------------\n"
+                 "C - toggle console\n"
+                 "T - terminate/quit\n"
+                 "I - input\n"
+                 "----------------------------");
 
     //#region Loop Fields
     MSG msg;
@@ -64,7 +71,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
         //Frame painting
         EngineMethods::DrawLine({0, 0},
-                                {500, 512},
+                                {512, 450},
                                 RGB(255, 0, 0),
                                 frameBuffer,
                                 REND_WIDTH,
