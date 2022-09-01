@@ -23,24 +23,33 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
     RegisterClass(&wc);
 
+    RECT rect = { 0, 0, REND_WIDTH, REND_HEIGHT };
+    AdjustWindowRect(&rect, WS_THICKFRAME | WS_CAPTION, false);
+
     HWND hwnd = CreateWindow(   CLASS_NAME,
                                 WINDOW_NAME.c_str(),
-                                WS_OVERLAPPEDWINDOW,
+                                WS_THICKFRAME | WS_CAPTION,
                                 CW_USEDEFAULT, CW_USEDEFAULT,
-                                REND_WIDTH, REND_HEIGHT,
+                                rect.right - rect.left, rect.bottom - rect.top,
                                 nullptr,
                                 nullptr,
                                 hInst,
                                 nullptr);
 
     ShowWindow(hwnd, SW_SHOWDEFAULT);
+    SetFocus(hwnd);
+
     //#endregion
 
     Console::Attach(hwnd);
 
-    std::string test = "Hello, World.";
+    RECT test;
+    RECT test2;
+    GetClientRect(hwnd, &test);
+    GetWindowRect(hwnd, &test2);
 
-    WriteConsoleA(Console::hCslOut, test.c_str(), test.length(), NULL, NULL);
+    Console::Log(std::to_string(test.top) + " " + std::to_string(test.left) + " " + std::to_string(test.right) + " " + std::to_string(test.bottom));
+    Console::Log(std::to_string(test2.top) + " " + std::to_string(test2.left) + " " + std::to_string(test2.right) + " " + std::to_string(test2.bottom));
 
     MSG msg;
     PAINTSTRUCT ps;
