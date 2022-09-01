@@ -37,9 +37,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
     ShowWindow(hwnd, SW_SHOWDEFAULT);
     SetFocus(hwnd);
-
     //#endregion
 
+    //#region Console init and loop fields
     Console::Attach(hwnd);
     Console::Log("----------------------------\n"
                  "    Solar Engine by m4tex \n"
@@ -49,7 +49,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
                  "I - input\n"
                  "----------------------------");
 
-    //#region Loop Fields
     MSG msg;
     PAINTSTRUCT ps;
     int FPS;

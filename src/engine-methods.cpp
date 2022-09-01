@@ -17,7 +17,7 @@ namespace EngineMethods {
         for (int i = 0; i < (int) p2.x - p1.x; i++) {
             pBuffer[(int) (p1.x + i + (k * i * height))] = ((int) (p1.x + i) < width) * color;
 
-            //Logs 10 first steps of the algoritm
+            //Logs 10 first steps of the algoritm, delta x and the actual delta x the algorithm calculated
             if(i < 10 && !logged) {
                 Console::Log(std::to_string(i) + " " + std::to_string((int) (p1.x + i + k * i * height) - i*height));
             } else {
@@ -27,7 +27,6 @@ namespace EngineMethods {
     }
 
     char ToLower(char c){
-        if (c > 64 && c < 91) return c + 32;
-        return c;
+        return c + 32 * (c > 64 && c < 91);
     }
 }
