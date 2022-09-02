@@ -3,26 +3,24 @@
 //
 
 #include "../include/engine-methods.h"
-#include "../include/debug-console.h"
 
 namespace EngineMethods {
-    bool logged = false;
+    void DrawLine(Vec2 p1, Vec2 p2, COLORREF color, COLORREF *pBuffer, int width) {
+        int dx = (int)(p2.x - p1.x);
+        int dy = (int)(p2.y - p1.y);
+        int D = 2*dy-dx;
+        int y = (int)p1.y;
 
-    void DrawLine(Vec2 p1, Vec2 p2, COLORREF color, COLORREF *pBuffer, int width, int height) {
-        float k;
-
-        k = (p2.y - p1.y) / (p2.x - p1.x);
-
-        //I am so sure this won't work lol
-        for (int i = 0; i < (int) p2.x - p1.x; i++) {
-            pBuffer[(int) (p1.x + i + (k * i * height))] = ((int) (p1.x + i) < width) * color;
-
-            //Logs 10 first steps of the algoritm, delta x and the actual delta x the algorithm calculated
-            if(i < 10 && !logged) {
-                Console::Log(std::to_string(i) + " " + std::to_string((int) (p1.x + i + k * i * height) - i*height));
-            } else {
-                logged = true;
+        for (int i = p1.x; i < p2.x; ++i) {
+            pBuffer[i+y*width] = color;
+            if(D > 0) {
+                y += 1;
+                D -= 2*dy;
             }
+            D+=2*dy;
+
+//            y += (D > 0);
+//            D += 2*(D > 0)*dy;
         }
     }
 
