@@ -1,141 +1,43 @@
-#include <windows.h>
-#include <string>
-#include <chrono>
-#include "../include/engine-methods.h"
-#include "../include/debug-console.h"
+//
+// Created by m4tex on 9/13/22.
+//
+#include <iostream>
+#include <X11/Xlib.h>
 
-#define REND_WIDTH 512
-#define REND_HEIGHT 512
+enum {
+    RECT_X = 20,
+    RECT_Y = 20,
+    RECT_WIDTH = 10,
+    RECT_HEIGHT = 10,
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    WIN_X = 10,
+    WIN_Y = 10,
+    WIN_WIDTH = 100,
+    WIN_HEIGHT = 100,
+    WIN_BORDER = 1
+};
 
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
-    //#region Creating and showing the engine window
-    const std::string WINDOW_NAME = "Solar Engine";
-    const char CLASS_NAME[] = "SolarEngineWindow";
+int main() {
+    Display *display;
+    Window window;
+    XEvent event;
+    int screen;
 
-    WNDCLASS wc = {};
-    wc.hbrBackground = GetSysColorBrush(BLACK_BRUSH);
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInst;
-    wc.lpszClassName = CLASS_NAME;
+    display = XOpenDisplay(NULL);
+    if (display == NULL) exit(1);
 
-    RegisterClass(&wc);
+    screen = DefaultScreen(display);
 
-    RECT rect = { 0, 0, REND_WIDTH, REND_HEIGHT };
-    AdjustWindowRect(&rect, WS_CAPTION, false);
+    window = XCreateSimpleWindow(display, RootWindow(display, screen), WIN_X, WIN_Y, WIN_WIDTH, WIN_HEIGHT, WIN_BORDER,
+                                 BlackPixel(display, screen), WhitePixel(display, screen));
 
-    HWND hwnd = CreateWindow(   CLASS_NAME,
-                                WINDOW_NAME.c_str(),
-                                WS_SYSMENU | WS_CAPTION,
-                                CW_USEDEFAULT, CW_USEDEFAULT,
-                                rect.right - rect.left, rect.bottom - rect.top,
-                                nullptr,
-                                nullptr,
-                                hInst,
-                                nullptr);
+    Atom del_window = XInternAtom(display, "WM_DELETE_WINDOW", 0);
+    XSetWMProtocols(display, window, &del_window, 1);
 
-    ShowWindow(hwnd, SW_SHOWDEFAULT);
-    SetFocus(hwnd);
-    //#endregion
+    XMapWindow(display, window);
 
-    //#region Console init and loop fields
-    Console::Attach(hwnd);
-    Console::Log("-------------------------\n"
-                 "  Solar Engine by m4tex \n"
-                 "-------------------------\n"
-                 "C - toggle console\n"
-                 "T - terminate/quit\n"
-                 "I - input\n"
-                 "-------------------------");
 
-    MSG msg;
-    PAINTSTRUCT ps;
-    int FPS;
-    auto t_fps_old = std::chrono::high_resolution_clock::now();
-    auto *frameBuffer = new COLORREF[REND_WIDTH*REND_HEIGHT] { 0 };
-    //#endregion
+    //heeeeeeeell naaw... I saw more errors than I could handle. Sure, I could fix it, but I need to spend my time on the more important stuff
 
-    //Engine loop
-    while (true) {
-        //#region Message Handling
-        if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessageA(&msg);
-        }
-
-        if (msg.message == WM_QUIT)
-            break;
-        //#endregion
-
-        //Frame painting
-        EngineMethods::DrawLine(
-                                {0, 0},
-                                {400, 300},
-                                RGB(255, 255, 0),
-                                frameBuffer,
-                                REND_WIDTH);
-
-        //#region Draw a bitmap from frameBuffer
-        HBITMAP bitmap = CreateBitmap(REND_WIDTH,
-                                      REND_HEIGHT,
-                                      1,
-                                      8*4,
-                                      frameBuffer);
-
-        HDC deviceCtx = BeginPaint(hwnd, &ps);
-        HDC srcHdc = CreateCompatibleDC(deviceCtx);
-
-        SelectObject(srcHdc, bitmap);
-
-        BitBlt(deviceCtx,
-               0, 0,
-               REND_WIDTH, REND_HEIGHT,
-               srcHdc,
-               0, 0,
-               SRCCOPY);
-
-        EndPaint(hwnd, &ps);
-
-        DeleteObject(bitmap);
-        DeleteDC(srcHdc);
-        //#endregion
-
-        //#region FPS Display
-        auto t_fps_new = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> dt = t_fps_new - t_fps_old;
-        FPS = 1/dt.count();
-        SetWindowTextA(hwnd, (WINDOW_NAME + " FPS: " + std::to_string(FPS)).c_str());
-        t_fps_old = t_fps_new;
-        //#endregion
-    }
     return 0;
-}
-
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        //hook and listen for it globally? would be nice for debugging....
-        case WM_CHAR:
-            switch(EngineMethods::ToLower((char)wParam)) {
-                case 'c':
-                    Console::ToggleVis();
-                    break;
-
-                case 't':
-                    PostQuitMessage(0);
-                    break;
-            }
-            return 0;
-
-
-        case WM_PAINT:
-//            Console::Log("Main Proc");
-            return 0;
-
-
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
-    }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
