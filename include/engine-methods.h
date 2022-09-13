@@ -8,7 +8,7 @@
 #include "engine-structures.h"
 
 namespace EngineMethods {
-    void DrawLine(Vec2 p1, Vec2 p2, COLORREF color, COLORREF *lpBitBuffer, int width, int height);
+    void DrawLine(Vec2 p1, Vec2 p2, COLORREF color, COLORREF *lpBitBuffer, int width);
     char ToLower(char c);
 }
 

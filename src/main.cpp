@@ -71,11 +71,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
         //Frame painting
         EngineMethods::DrawLine(
                                 {0, 0},
-                                {100, 400},
-                                RGB(255, 0, 0),
+                                {400, 300},
+                                RGB(255, 255, 0),
                                 frameBuffer,
-                                REND_WIDTH,
-                                REND_HEIGHT);
+                                REND_WIDTH);
 
         //#region Draw a bitmap from frameBuffer
         HBITMAP bitmap = CreateBitmap(REND_WIDTH,
