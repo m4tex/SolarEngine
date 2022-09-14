@@ -71,7 +71,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
         //Frame painting
         EngineMethods::DrawLine(
                                 {0, 0},
-                                {400, 300},
+                                {512, 100},
                                 RGB(255, 255, 0),
                                 frameBuffer,
                                 REND_WIDTH);
@@ -114,7 +114,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR args, int nCmdShow) {
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
-        //hook and listen for it globally? would be nice for debugging....
+        //hook and listen for it globally? would be nice for debugging.... I wrote this, but now I have no idea what I meant xd
         case WM_CHAR:
             switch(EngineMethods::ToLower((char)wParam)) {
                 case 'c':
