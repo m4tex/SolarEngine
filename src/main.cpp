@@ -4,111 +4,22 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <fstream>
-//#include <string>
-#include <sstream>
-#include <signal.h>
 
-#define ASSERT(x) if (!(x)) raise(SIGTRAP);
-#define GLCALL(x) glClearError(); \
-    x;                            \
-    ASSERT(glLogCall(#x, __FILE__, __LINE__));
+#include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
+#include "IndexBuffer.h"
+#include "VertexArray.h"
+#include "Shader.h"
+#include "Renderer.h"
+#include "Texture.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
-static void glClearError()
-{
-    while(glGetError() != GL_NO_ERROR);
-}
-
-static bool glLogCall(const char* function, const char* file, int line)
-{
-    while(GLenum error = glGetError())
-    {
-        std::cout << "[OpenGL Error]: Code " << error << " | " << function << " " << file << ":" << line << std::endl;
-        return false;
-    }
-    return true;
-}
-
-struct ShaderProgramSource {
-    std::string vertexSource;
-    std::string fragmentSource;
-};
-
-static ShaderProgramSource ParseShader(const std::string& filepath)
-{
-    std::ifstream stream(filepath);
-
-    enum class ShaderType {
-        NONE = -1, VERTEX = 0, FRAGMENT = 1
-    };
-
-    std::string line;
-    std::stringstream ss[2];
-
-    ShaderType type = ShaderType::NONE;
-
-    while(getline(stream, line))
-    {
-        if (line.find("#shader") != std::string::npos)
-        {
-            if(line.find("vertex") != std::string::npos)
-                type = ShaderType::VERTEX;
-            else if(line.find("fragment") != std::string::npos)
-                type = ShaderType::FRAGMENT;
-        }
-        else
-        {
-            ss[(int)type] << line << '\n';
-        }
-    }
-
-    return { ss[0].str(), ss[1].str() };
-}
-
-static GLuint CompileShader(GLuint type, const std::string& source)
-{
-    GLuint id = glCreateShader(type);
-    const char* src = source.c_str();
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
-
-    GLint result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-
-    if(result == GL_FALSE)
-    {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-
-        GLchar message[length];
-
-        glGetShaderInfoLog(id, length, &length, message);
-
-        std::cout << "Failed to compile a shader!" << std::endl;
-        std::cout << message << std::endl;
-
-        glDeleteShader(id);
-        return 0;
-    }
-
-    return id;
-}
-
-static GLuint CreateShader(const std::string& vShader, const std::string fShader)
-{
-    GLuint program = glCreateProgram();
-    GLuint vs = CompileShader(GL_VERTEX_SHADER, vShader);
-    GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fShader);
-
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    return program;
+void GLAPIENTRY MessageCallback(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar* message, const void*) {
+    std::cout << "[GL Message]: " << message << std::endl;
 }
 
 int main()
@@ -129,7 +40,6 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
-
     glfwSwapInterval(1);
 
     if (glewInit() != GLEW_OK) {
@@ -137,13 +47,16 @@ int main()
         return -1;
     }
 
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, nullptr);
+
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     GLfloat positions[] = {
-            -0.5f, -0.5f,
-            0.5f, -0.5f,
-            0.5f, 0.5f,
-            -0.5f, 0.5f,
+            100.0, 100.0f, 0.0f, 0.0f,
+            200.0f, 100.0f, 1.0f, 0.0f,
+            200.0f, 200.0f, 1.0f, 1.0f,
+            100.0f, 200.0f, 0.0f, 1.0f
     };
 
     GLuint indices[] = {
@@ -151,44 +64,79 @@ int main()
             2, 3, 0
     };
 
-    GLuint buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 8, positions, GL_STATIC_DRAW);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+    VertexArray va;
+    VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
-    GLuint ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), indices, GL_STATIC_DRAW);
+    VertexBufferLayout layout;
+    layout.PushF(2);
+    layout.PushF(2);
+    va.AddBuffer(vb, layout);
 
-    ShaderProgramSource shaderProgramSource = ParseShader("../res/shaders/Basic.glsl");
-    std::cout << "VERTEX" << std::endl;
-    std::cout << shaderProgramSource.vertexSource << std::endl;
-    std::cout << "FRAGMENT" << std::endl;
-    std::cout << shaderProgramSource.fragmentSource << std::endl;
+    VertexBuffer::Unbind();
 
-    GLuint shader = CreateShader(shaderProgramSource.vertexSource, shaderProgramSource.fragmentSource);
-    glUseProgram(shader);
+    IndexBuffer ib(indices, 6); //Gets bound to the va automatically
 
-    GLuint location = glGetUniformLocation(shader, "u_Color");
-    ASSERT(location != -1);
-    glUniform4f(location, 0.2f, 0.2f, 1.0f, 1.0f);
+    glm::mat4 proj = glm::ortho(0.0f, 512.0f, 0.0f, 512.0f, -1.0f, 1.0f);
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
+
+    glm::mat4 mvp = proj * view * model;
+
+    Shader shader("../res/shaders/Basic.glsl");
+    shader.Bind();
+    shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+    shader.SetUniformMat4f("u_MVP", mvp);
+
+    Texture texture("../res/textures/texture.jpg");
+    texture.Bind();
+    shader.SetUniform1i("u_Texture", 0);
+
+    Renderer renderer;
+
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui::StyleColorsDark();
+
+    float r = 0.0f;
+    float inc = 0.05f;
+
+    glClearColor(0.15f, 0.15f, 0.15f, 1);
 
     while (!glfwWindowShouldClose(window))
     {
-        glClearColor(0.15f, 0.15f, 0.15f, 1);
+        glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        ImGui_ImplGlfw_NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui::NewFrame();
+
+        shader.Bind();
+        shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+
+        renderer.Draw(va, ib, shader);
+
+        {
+            static float f = 0.0f;
+            static int counter = 0;
+            ImGui::Text("Hello, world!");
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+            ImGui::SameLine();
+            ImGui::Text("Hewwow");
+        }
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
-    glDeleteProgram(shader);
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
