@@ -6,7 +6,7 @@
 // Sean Barrett 2014
 //
 // Useful for e.g. packing rectangular textures into an atlas.
-// Does not do rotation.
+// Does not do eulerAngles.
 //
 // Before #including,
 //

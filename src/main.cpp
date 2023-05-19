@@ -20,9 +20,19 @@ void GLAPIENTRY MessageCallback(GLenum, GLenum, GLuint, GLenum, GLsizei, const G
 }
 
 void key_function(GLFWwindow* window, int key, int, int action, int) {
-    if (action == GLFW_KEY_ESCAPE)
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
 
+double lastX, lastY;
+double xOffset, yOffset;
+
+void cursor_position_callback(GLFWwindow*, double xPos, double yPos) {
+    xOffset = lastX - xPos;
+    yOffset = lastY - yPos;
+
+    lastX = xPos;
+    lastY = yPos;
 }
 
 int main()
@@ -43,8 +53,15 @@ int main()
         return -1;
     }
 
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
+
+    if (glfwRawMouseMotionSupported())
+        glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
+    glfwSetKeyCallback(window, key_function);
+    glfwSetCursorPosCallback (window, cursor_position_callback);
 
     if (glewInit() != GLEW_OK) {
         std::cout << "Failed to initiate Glew" << std::endl;
@@ -57,8 +74,6 @@ int main()
 
 //    glEnable(GL_DEBUG_OUTPUT);
 //    glDebugMessageCallback(MessageCallback, nullptr);
-
-    glfwSetKeyCallback(window, key_function);
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
@@ -104,12 +119,21 @@ int main()
     Camera camera { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 90.0f, 0.001f, 1000.0f };
 
     SolarObject stefan(material, planeModel);
-    stefan.position.z = -15.0f;
+    stefan.position.z = 15.0f;
+    stefan.eulerAngles.y = 180.0f;
     SolarObject stefan2(material, planeModel2);
-    stefan2.position.z = -15.0f;
+    stefan2.position.z = 15.0f;
+    stefan2.eulerAngles.y = 180.0f;
+
+
+    float movementSpeed = 0.02f;
+    float mouseLookSensitivity = 0.02f;
+    bool mouseLocked = false;
 
     bool autoSpin = true;
     float spinAmount = 0.2f;
+
+    double lastFrame = 0.0;
 
     glClearColor(0.15f, 0.15f, 0.15f, 1);
 
@@ -127,6 +151,58 @@ int main()
 
         if (autoSpin) stefan.eulerAngles.y += spinAmount;
         if (autoSpin && stefan.eulerAngles.y >= 359.9f) stefan.eulerAngles.y = 0.0f;
+
+        double deltaTime = glfwGetTime() - lastFrame;
+        lastFrame = deltaTime;
+
+        glm::vec2 rotationRad = camera.eulerAngles * glm::radians(1.0f);
+        glm::vec3 cameraForward = {
+        glm::sin(rotationRad.y),
+        glm::sin(rotationRad.x),
+        glm::cos(rotationRad.x) * glm::cos(rotationRad.y)
+        };
+
+        glm::vec3 cameraRight = glm::cross(cameraForward, glm::vec3(0, 1, 0));
+        glm::vec3 cameraUp = glm::cross(cameraForward, cameraRight);
+
+        if(glfwGetKey(window, GLFW_KEY_W)) {
+            camera.position += cameraForward * (float)(movementSpeed * deltaTime);
+        }
+
+        if(glfwGetKey(window, GLFW_KEY_S)) {
+            camera.position -= cameraForward * (float)(movementSpeed * deltaTime);
+        }
+
+        if(glfwGetKey(window, GLFW_KEY_A)) {
+            camera.position -= cameraRight * (float)(movementSpeed * deltaTime);
+        }
+
+        if(glfwGetKey(window, GLFW_KEY_D)) {
+            camera.position += cameraRight * (float)(movementSpeed * deltaTime);
+        }
+
+        if(glfwGetKey(window, GLFW_KEY_Q)) {
+            camera.position += cameraUp * (float)(movementSpeed * deltaTime);
+        }
+
+        if(glfwGetKey(window, GLFW_KEY_E)) {
+            camera.position -= cameraUp * (float)(movementSpeed * deltaTime);
+        }
+
+        if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) &&
+        glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            mouseLocked = true;
+
+            camera.eulerAngles.x += (float)(yOffset * deltaTime * mouseLookSensitivity);
+            camera.eulerAngles.y += (float)(xOffset * deltaTime * mouseLookSensitivity);
+
+            if (camera.eulerAngles.x > 89.0f) camera.eulerAngles.x = 89.0f;
+            if (camera.eulerAngles.x < -89.0f) camera.eulerAngles.x = -89.0f;
+
+            xOffset = 0;
+            yOffset = 0;
+        } else if(mouseLocked) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
         {
             ImGui::Begin("Model");
@@ -163,6 +239,8 @@ int main()
         {
             ImGui::Begin("View");
             ImGui::SliderFloat("FOV", &camera.fov, 1.0f, 179.0f);
+            ImGui::SliderFloat("Movement Speed", &movementSpeed, 0.002f, .2f);
+            ImGui::SliderFloat("Mouse Sensitivity", &mouseLookSensitivity, 0.002f, .05f);
             ImGui::Text("Bloom Parameters");
 //            ImGui::SliderFloat("Intensity");
             ImGui::End();
