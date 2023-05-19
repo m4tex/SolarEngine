@@ -9,10 +9,21 @@
 #include "../include/Shader.h"
 
 
-Shader::Shader(const std::string &filepath)
+Shader::Shader(const std::string &vsPath, const std::string &fsPath)
 {
-    ShaderProgramSource source = ParseShader(filepath);
-    m_RendererID = CreateShader(source.vertexSource, source.fragmentSource);
+    std::string vs(ParseShaderSource(vsPath)), fs(ParseShaderSource(fsPath));
+
+    m_RendererID = CreateShader(vs, fs);
+}
+
+Shader::Shader(const std::string& vsPath, const std::string& fsPath, const std::string& gsPath)
+{
+    std::string vs, fs, gs;
+    vs = ParseShaderSource(vsPath);
+    fs = ParseShaderSource(fsPath);
+    gs = ParseShaderSource(gsPath);
+
+    m_RendererID = CreateShader(vs, fs, gs);
 }
 
 Shader::~Shader()
@@ -36,6 +47,10 @@ void Shader::SetUniform1f(const std::string &name, float value) {
     glUniform1f(GetUniformLocation(name), value);
 }
 
+void Shader::SetUniform3f(const std::string& name, float v0, float v1, float v2) {
+    glUniform3f(GetUniformLocation(name), v0, v1, v2);
+}
+
 void Shader::SetUniform4f(const std::string &name, float v0, float v1, float v2, float v3) {
     glUniform4f(GetUniformLocation(name), v0, v1, v2, v3);
 }
@@ -43,6 +58,7 @@ void Shader::SetUniform4f(const std::string &name, float v0, float v1, float v2,
 void Shader::SetUniformMat4f(const std::string &name, const glm::mat4& matrix) {
     glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
 }
+
 
 int Shader::GetUniformLocation(const std::string &name) {
     if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end())
@@ -56,39 +72,49 @@ int Shader::GetUniformLocation(const std::string &name) {
     return location;
 }
 
-
-ShaderProgramSource Shader::ParseShader(const std::string& filepath)
-{
+std::string Shader::ParseShaderSource(const std::string& filepath) {
     std::ifstream stream(filepath);
     if (stream.fail())
         std::cout << "[Error]: Failed to parse the shader, the file could not exist." << std::endl;
 
-    enum class ShaderType {
-        NONE = -1, VERTEX = 0, FRAGMENT = 1
-    };
+    std::stringstream ss;
+    ss << stream.rdbuf();
 
-    std::string line;
-    std::stringstream ss[2];
-
-    ShaderType type = ShaderType::NONE;
-
-    while(getline(stream, line))
-    {
-        if (line.find("#shader") != std::string::npos)
-        {
-            if(line.find("vertex") != std::string::npos)
-                type = ShaderType::VERTEX;
-            else if(line.find("fragment") != std::string::npos)
-                type = ShaderType::FRAGMENT;
-        }
-        else
-        {
-            ss[(int)type] << line << '\n';
-        }
-    }
-
-    return { ss[0].str(), ss[1].str() };
+    return ss.str();
 }
+
+//ShaderProgramSource Shader::ParseShader(const std::string& filepath)
+//{
+//    std::ifstream stream(filepath);
+//    if (stream.fail())
+//        std::cout << "[Error]: Failed to parse the shader, the file could not exist." << std::endl;
+//
+//    enum class ShaderType {
+//        NONE = -1, VERTEX = 0, FRAGMENT = 1
+//    };
+//
+//    std::string line;
+//    std::stringstream ss[2];
+//
+//    ShaderType type = ShaderType::NONE;
+//
+//    while(getline(stream, line))
+//    {
+//        if (line.find("#shader") != std::string::npos)
+//        {
+//            if(line.find("vertex") != std::string::npos)
+//                type = ShaderType::VERTEX;
+//            else if(line.find("fragment") != std::string::npos)
+//                type = ShaderType::FRAGMENT;
+//        }
+//        else
+//        {
+//            ss[(int)type] << line << '\n';
+//        }
+//    }
+//
+//    return { ss[0].str(), ss[1].str() };
+//}
 
 
 GLuint Shader::CompileShader(GLuint type, const std::string& source)
@@ -133,6 +159,26 @@ GLuint Shader::CreateShader(const std::string& vShader, const std::string& fShad
 
     glDeleteShader(vs);
     glDeleteShader(fs);
+
+    return program;
+}
+
+GLuint Shader::CreateShader(const std::string& vShader, const std::string& fShader, const std::string& gShader)
+{
+    GLuint program = glCreateProgram();
+    GLuint vs = CompileShader(GL_VERTEX_SHADER, vShader);
+    GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fShader);
+    GLuint gs = CompileShader(GL_GEOMETRY_SHADER, gShader);
+
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glAttachShader(program, gs);
+    glLinkProgram(program);
+    glValidateProgram(program);
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    glDeleteShader(gs);
 
     return program;
 }
