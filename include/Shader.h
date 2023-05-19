@@ -10,9 +10,10 @@
 
 typedef unsigned int GLuint;
 
-struct ShaderProgramSource {
+struct ShaderConfig {
     std::string vertexSource;
     std::string fragmentSource;
+    std::string geometrySource;
 };
 
 class Shader {
@@ -21,6 +22,8 @@ private:
     std::unordered_map<std::string, int> m_UniformLocationCache;
 
 public:
+    Shader();
+    Shader(const ShaderConfig& config);
     Shader(const std::string& vsPath, const std::string& fsPath);
     Shader(const std::string& vsPath, const std::string& fsPath, const std::string& gsPath);
     ~Shader();
@@ -34,7 +37,6 @@ public:
     void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
     void SetUniformMat4f(const std::string& name, const glm::mat4& matrix);
 private:
-//    ShaderProgramSource ParseShader(const std::string& filepath);
     std::string ParseShaderSource(const std::string& filepath);
     unsigned int CompileShader(unsigned int type, const std::string& source);
     GLuint CreateShader(const std::string& vertexShader, const std::string& fragmentShader);

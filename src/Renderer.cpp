@@ -4,11 +4,8 @@
 
 #include "../include/Renderer.h"
 
-void Renderer::Draw(const VertexArray &va, const IndexBuffer &ib, const Shader &shader) const {
-    shader.Bind();
-
-    va.Bind();
-    ib.Bind();
+void Renderer::Draw(Camera& camera, SolarObject& object) const {
+    object.PrepareDraw(camera.PerspectiveViewMatrix(), { lightDir, ambient, bias });
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }

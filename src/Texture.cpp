@@ -2,10 +2,9 @@
 // Created by m4tex on 4/17/23.
 //
 
-#pragma once
-
 #include "Texture.h"
 #include "stb_image/stb_image.h"
+#include "GL/glew.h"
 
 Texture::Texture(const std::string &path) : m_RendererID(0), m_FilePath(path),
 m_LocalBuffer(nullptr), m_Width(0), m_Height(0), m_BPP(0)

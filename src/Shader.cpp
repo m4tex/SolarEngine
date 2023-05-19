@@ -8,6 +8,7 @@
 
 #include "../include/Shader.h"
 
+Shader::Shader() : m_RendererID(0xffffff) {}
 
 Shader::Shader(const std::string &vsPath, const std::string &fsPath)
 {
@@ -26,8 +27,21 @@ Shader::Shader(const std::string& vsPath, const std::string& fsPath, const std::
     m_RendererID = CreateShader(vs, fs, gs);
 }
 
+Shader::Shader(const ShaderConfig& config) {
+    std::string vs, fs;
+
+    vs = ParseShaderSource(config.vertexSource);
+    fs = ParseShaderSource(config.fragmentSource);
+
+    if (config.geometrySource.empty())
+        m_RendererID = CreateShader(vs, fs);
+    else
+        m_RendererID = CreateShader(vs, fs,ParseShaderSource(config.geometrySource));
+}
+
 Shader::~Shader()
 {
+    std::cout << "Destructing shader" << std::endl;
     glDeleteProgram(m_RendererID);
 }
 
@@ -82,40 +96,6 @@ std::string Shader::ParseShaderSource(const std::string& filepath) {
 
     return ss.str();
 }
-
-//ShaderProgramSource Shader::ParseShader(const std::string& filepath)
-//{
-//    std::ifstream stream(filepath);
-//    if (stream.fail())
-//        std::cout << "[Error]: Failed to parse the shader, the file could not exist." << std::endl;
-//
-//    enum class ShaderType {
-//        NONE = -1, VERTEX = 0, FRAGMENT = 1
-//    };
-//
-//    std::string line;
-//    std::stringstream ss[2];
-//
-//    ShaderType type = ShaderType::NONE;
-//
-//    while(getline(stream, line))
-//    {
-//        if (line.find("#shader") != std::string::npos)
-//        {
-//            if(line.find("vertex") != std::string::npos)
-//                type = ShaderType::VERTEX;
-//            else if(line.find("fragment") != std::string::npos)
-//                type = ShaderType::FRAGMENT;
-//        }
-//        else
-//        {
-//            ss[(int)type] << line << '\n';
-//        }
-//    }
-//
-//    return { ss[0].str(), ss[1].str() };
-//}
-
 
 GLuint Shader::CompileShader(GLuint type, const std::string& source)
 {
