@@ -30,11 +30,11 @@ int main()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
-
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Poggies", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Solar Engine", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -54,6 +54,28 @@ int main()
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
+//    const GLfloat quadVertices[] = {
+//            -1.0f, -1.0f, 0.0f, 0.0f,
+//            -1.0f, 1.0f, 0.0f, 1.0f,
+//            1.0f, 1.0f, 1.0f, 1.0f,
+//            1.0f, -1.0f, 1.0f, 0.0f
+//    };
+//
+//    const GLuint quadIndices[] = {
+//            0, 1, 2, 0, 2, 3
+//    };
+
+    const GLfloat quadVertices[] = {
+            0.0f, 0.0f, 0.0f, 1.0f, // Bottom-left
+            0.0f, 1.0f, 0.0f, 0.0f, // Top-left
+            1.0f, 1.0f, 1.0f, 0.0f, // Top-right
+            1.0f, 0.0f, 1.0f, 1.0f  // Bottom-right
+    };
+
+    const GLuint quadIndices[] = {
+            0, 1, 2, 2, 3, 0
+    };
+
     GLfloat positions[] = {
             -10.0f, -10.0f, 0.0f, 0.0f, 0.0f,
             10.0f, -10.0f, 0.0f, 1.0f, 0.0f,
@@ -66,10 +88,34 @@ int main()
             2, 3, 0
     };
 
+    glEnable(GL_MULTISAMPLE);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    GLuint depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 512, 512, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    GLuint depthBuffer;
+    glGenFramebuffers(1, &depthBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMap);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "[Error]: Depth framebuffer incomplete." << std::endl;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     VertexArray va;
     VertexBuffer vb(positions, 4 * 5 * sizeof(float));
@@ -83,24 +129,9 @@ int main()
 
     IndexBuffer ib(indices, 6); //Gets bound to the va automatically
 
-//    glm::vec4 v1 = mvp * glm::vec4(positions[0], positions[1], positions[2], 1.0f);
-//    glm::vec4 v2 = mvp * glm::vec4(positions[5], positions[6], positions[7], 1.0f);
-//    glm::vec4 v3 = mvp * glm::vec4(positions[10], positions[11], positions[12], 1.0f);
-//    glm::vec4 v4 = mvp * glm::vec4(positions[15], positions[16], positions[17], 1.0f);
-//
-//    v1 /= v1.w;
-//    v2 /= v2.w;
-//    v3 /= v3.w;
-//    v4 /= v4.w;
-//
-//    std::cout << std::to_string(v1.x) + ' ' + std::to_string(v1.y) + ' ' + std::to_string(v1.z) << std::endl;
-//    std::cout << std::to_string(v2.x) + ' ' + std::to_string(v2.y) + ' ' + std::to_string(v2.z) << std::endl;
-//    std::cout << std::to_string(v3.x) + ' ' + std::to_string(v3.y) + ' ' + std::to_string(v3.z) << std::endl;
-//    std::cout << std::to_string(v4.x) + ' ' + std::to_string(v4.y) + ' ' + std::to_string(v4.z) << std::endl;
-
-    Shader shader("../res/shaders/basic/basic_vertex.glsl",
-                  "../res/shaders/basic/basic_fragment.glsl",
-                  "../res/shaders/basic/basic_geometry.glsl");
+    Shader shader("../res/shaders/basic/textured_vertex.glsl",
+                  "../res/shaders/basic/textured_lit_fragment.glsl",
+                  "../res/shaders/basic/textured_lit_geometry.glsl");
 
     Texture texture("../res/textures/texture.jpg");
     texture.Bind();
@@ -117,17 +148,19 @@ int main()
 
     glClearColor(0.15f, 0.15f, 0.15f, 1);
 
-    glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.001f, 1000.0f);
 
-    float translateX = 0.0f, translateY = 0.0f, translateZ = -5.0f;
+    float translateX = 0.0f, translateY = 0.0f, translateZ = -15.0f;
     float rotationX = 0.0f, rotationY = 0.0f, rotationZ = 0.0f;
     float scaleX = 1.0f, scaleY = 1.0f, scaleZ = 1.0f;
+    bool autoSpin = true;
+    float spinAmount = 0.2f;
 
-    float lightDirX = 1.0f, lightDirY = -0.3f, lightDirZ = 0.0f;
-    float ambientR = .2f, ambientG = .2f, ambientB = .2f;
+    float lightBias = .25f;
+    float lightDirX = 1.0f, lightDirY = -0.3f, lightDirZ = 2.0f;
+    float ambientR = .05f, ambientG = .05f, ambientB = .05f;
 
-    //For now the origin will be 0, 0, 0
-//    glm::vec3 origin
+    float fov = 90.0f;
+    bool showZBuffer = false;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -137,6 +170,8 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
+
+        glm::mat4 proj = glm::perspective(glm::radians(fov), 1.0f, 0.001f, 1000.0f);
 
         glm::mat4 view = glm::mat4(1.0f);
 
@@ -150,8 +185,37 @@ int main()
         shader.SetUniformMat4f("u_MVP", mvp);
         shader.SetUniform3f("u_LightDir", lightDirX, lightDirY, lightDirZ);
         shader.SetUniform3f("u_Ambient", ambientR, ambientG, ambientB);
+        shader.SetUniform1f("u_Bias", lightBias);
 
         renderer.Draw(va, ib, shader);
+
+        if (autoSpin) rotationY += spinAmount;
+        if (autoSpin && rotationY >= 359.9f) rotationY = 0.0f;
+
+        if (showZBuffer) {
+            VertexArray quadVa;
+            VertexBuffer quadVb(quadVertices, 4 * 4 * sizeof(float));
+
+            VertexBufferLayout vbLayout;
+            vbLayout.PushF(2);
+            vbLayout.PushF(2);
+
+            quadVa.AddBuffer(quadVb, vbLayout);
+            quadVb.Unbind();
+
+            IndexBuffer quadIbo(quadIndices, 6);
+
+            Shader depthShader("../res/shaders/extra/depth_map_vertex.glsl",
+                               "../res/shaders/extra/depth_map_fragment.glsl");
+
+            depthShader.Bind();
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, depthMap);
+            depthShader.SetUniform1i("u_DepthMap", 1);
+
+            renderer.Draw(quadVa, quadIbo, Shader("../res/shader/extra/untransformed_vertex.glsl",
+                                                  "../res/shader/basic/textured_unlit_fragment.glsl"));
+        }
 
         {
             ImGui::Begin("Model");
@@ -160,6 +224,7 @@ int main()
             ImGui::SliderFloat("PosY", &translateY, -50.0f, 50.0f);
             ImGui::SliderFloat("PosZ", &translateZ, -50.0f, 50.0f);
             ImGui::Text("Rotation");
+            ImGui::Checkbox("Spin", &autoSpin);
             ImGui::SliderFloat("RotX", &rotationX, 0.0f, 360.0f);
             ImGui::SliderFloat("RotY", &rotationY, 0.0f, 360.0f);
             ImGui::SliderFloat("RotZ", &rotationZ, 0.0f, 360.0f);
@@ -172,6 +237,7 @@ int main()
 
         {
             ImGui::Begin("Lighting");
+            ImGui::InputFloat("Bias", &lightBias);
             ImGui::Text("Light Direction");
             ImGui::SliderFloat("LightDirX", &lightDirX, -2.0f, 2.0f);
             ImGui::SliderFloat("LightDirY", &lightDirY, -2.0f, 2.0f);
@@ -183,6 +249,15 @@ int main()
             ImGui::End();
         }
 
+        {
+            ImGui::Begin("View");
+            ImGui::Checkbox("Show Z-Buffer", &showZBuffer);
+            ImGui::SliderFloat("FOV", &fov, 1.0f, 179.0f);
+            ImGui::Text("Bloom Parameters");
+//            ImGui::SliderFloat("Intensity");
+            ImGui::End();
+        } //Window drawing
+
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -192,5 +267,7 @@ int main()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
     glfwTerminate();
+
     return 0;
 }
+
