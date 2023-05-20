@@ -6,9 +6,8 @@
 #include "../include/Renderer.h"
 #include <iostream>
 
-VertexBuffer::VertexBuffer(const void *data, unsigned int size) {
+VertexBuffer::VertexBuffer(const void *data, unsigned int size) : m_RendererID(-1) {
     glGenBuffers(1, &m_RendererID);
-    std::cout << "vb construct " << m_RendererID << std::endl;
     glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }

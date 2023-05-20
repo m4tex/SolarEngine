@@ -17,10 +17,10 @@
 struct Camera {
     glm::vec3 position;
     glm::vec2 eulerAngles; // No rolling eulerAngles
-    float fov, zNear, zFar;
+    float fov, aspect, zNear, zFar;
 
     glm::mat4 PerspectiveMatrix() const {
-        return glm::perspective(glm::radians(fov), 16.0f/9.0f, zNear, zFar);
+        return glm::perspective(glm::radians(fov), aspect, zNear, zFar);
     }
 
     glm::mat4 ViewMatrix() const {

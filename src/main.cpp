@@ -1,5 +1,5 @@
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH 512
+#define WINDOW_HEIGHT 512
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -13,6 +13,13 @@
 
 void GLAPIENTRY MessageCallback(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar* message, const void*) {
     std::cout << "[GL Message]: " << message << std::endl;
+}
+
+int windowWidth = WINDOW_WIDTH, windowHeight = WINDOW_HEIGHT;
+
+void window_resize_callback(GLFWwindow*, int width, int height) {
+    windowWidth = width;
+    windowHeight = height;
 }
 
 void key_function(GLFWwindow* window, int key, int, int action, int) {
@@ -55,6 +62,7 @@ int main()
     if (glfwRawMouseMotionSupported())
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
+    glfwSetWindowSizeCallback(window, window_resize_callback);
     glfwSetKeyCallback(window, key_function);
     glfwSetCursorPosCallback (window, cursor_position_callback);
 
@@ -67,8 +75,8 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(MessageCallback, nullptr);
+//    glEnable(GL_DEBUG_OUTPUT);
+//    glDebugMessageCallback(MessageCallback, nullptr);
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
@@ -77,7 +85,7 @@ int main()
     ImGui_ImplOpenGL3_Init("#version 410");
     ImGui::StyleColorsDark();
 
-    Model planeModel = Model("../res/models/terrain.obj");
+    Model planeModel = Model("../res/models/among.obj");
 
     Material material;
     Material material2;
@@ -88,14 +96,15 @@ int main()
 
     Renderer renderer;
 
-    Camera camera { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 90.0f, 0.001f, 1000000.0f };
+    Camera camera { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 90.0f,
+                    1.0f,0.001f, 1000000.0f };
 
     SolarObject stefan(material, planeModel);
     stefan.position.z = 15.0f;
     stefan.eulerAngles.y = 180.0f;
 
-    float movementSpeed = 1.0f;
-    float mouseLookSensitivity = 1.0f;
+    float movementSpeed = 25.0f;
+    float mouseLookSensitivity = 15.0f;
     bool mouseLocked = false;
 
     bool autoSpin = false;
@@ -113,6 +122,8 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
+
+        camera.aspect = (float)windowWidth / (float)windowHeight;
 
         renderer.Draw(camera, stefan);
 
@@ -213,10 +224,8 @@ int main()
         {
             ImGui::Begin("View");
             ImGui::SliderFloat("FOV", &camera.fov, 0.1f, 179.9f);
-            ImGui::SliderFloat("Movement Speed", &movementSpeed, 0.5f, 50.0f);
-            ImGui::SliderFloat("Mouse Sensitivity", &mouseLookSensitivity, .5f, 10.0f);
-            ImGui::Text("Bloom Parameters");
-//            ImGui::SliderFloat("Intensity");
+            ImGui::SliderFloat("Movement Speed", &movementSpeed, 15.0f, 80.0f);
+            ImGui::SliderFloat("Mouse Sensitivity", &mouseLookSensitivity, 8.0f, 50.0f);
             ImGui::End();
         } //Window drawing
 
