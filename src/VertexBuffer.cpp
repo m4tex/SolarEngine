@@ -4,9 +4,11 @@
 
 #include "../include/VertexBuffer.h"
 #include "../include/Renderer.h"
+#include <iostream>
 
 VertexBuffer::VertexBuffer(const void *data, unsigned int size) {
     glGenBuffers(1, &m_RendererID);
+    std::cout << "vb construct " << m_RendererID << std::endl;
     glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }

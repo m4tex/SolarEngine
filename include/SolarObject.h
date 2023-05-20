@@ -8,7 +8,9 @@
 #include "Shader.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "Texture.h"
+#include <memory>
 
 struct LightData {
     glm::vec3 lightDir;
@@ -17,8 +19,15 @@ struct LightData {
 };
 
 struct Model {
-    VertexArray va;
-    IndexBuffer ib;
+    std::unique_ptr<VertexArray> va;
+    std::unique_ptr<IndexBuffer> ib;
+    std::unique_ptr<VertexBuffer> vb;
+
+    Model (const std::string& filepath) {
+        LoadFromFile(filepath);
+    }
+
+    void LoadFromFile(const std::string& filepath);
 };
 
 const ShaderConfig defaultShaderConfig = {
@@ -29,6 +38,7 @@ const ShaderConfig defaultShaderConfig = {
 
 struct Material {
     glm::vec3 color = { 1.0f, 1.0f, 1.0f };
+    float shininess = 0.5f;
     Texture* texture = nullptr;
     ShaderConfig shaderConfig = defaultShaderConfig;
 };
@@ -44,10 +54,10 @@ public:
 
     void SetMaterial(Material& material);
     void SetModel(Model& model);
-    void PrepareDraw(glm::mat4 povMatrix, LightData lightData);
+    void PrepareDraw(glm::mat4 perspective, glm::mat4 view, LightData lightData);
 
+    Model* model = nullptr;
 private:
     Material* _material = nullptr;
     Shader _shaderProgram;
-    Model* _model = nullptr;
 };

@@ -1,14 +1,10 @@
-#define WINDOW_WIDTH 512
-#define WINDOW_HEIGHT 512
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#include "VertexBuffer.h"
-#include "VertexBufferLayout.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
 #include "Renderer.h"
 #include "glm/glm.hpp"
 #include "imgui/imgui.h"
@@ -53,7 +49,6 @@ int main()
         return -1;
     }
 
-
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
@@ -72,8 +67,8 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-//    glEnable(GL_DEBUG_OUTPUT);
-//    glDebugMessageCallback(MessageCallback, nullptr);
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, nullptr);
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
@@ -82,55 +77,28 @@ int main()
     ImGui_ImplOpenGL3_Init("#version 410");
     ImGui::StyleColorsDark();
 
-    GLfloat positions[] = {
-            -10.0f, -10.0f, 0.0f, 0.0f, 0.0f,
-            10.0f, -10.0f, 0.0f, 1.0f, 0.0f,
-            10.0f, 10.0f, 0.0f, 1.0f, 1.0f,
-            -10.0f, 10.0f, 0.0f, 0.0f, 1.0f
-    };
+    Model planeModel = Model("../res/models/terrain.obj");
 
-    GLuint indices[] = {
-            0, 1, 2,
-            2, 3, 0
-    };
-
-    VertexArray va;
-    VertexBuffer vb(positions, 4 * 5 * sizeof(float));
-
-    VertexBufferLayout layout;
-    layout.PushF(3);
-    layout.PushF(2);
-
-    va.AddBuffer(vb, layout);
-    vb.Unbind();
-
-    IndexBuffer ib(indices, 6);
-
-    Model planeModel = { va, ib };
-    Model planeModel2 = { va, ib };
     Material material;
-    material.texture = new Texture("../res/textures/texture.jpg");
-    material.shaderConfig.vertexSource = "../res/shaders/standard/textured_vertex.glsl";
-    material.shaderConfig.fragmentSource = "../res/shaders/standard/textured_lit_fragment.glsl";
-    material.shaderConfig.geometrySource = "../res/shaders/standard/textured_lit_geometry.glsl";
+    Material material2;
+
+    material.shaderConfig.vertexSource = "../res/shaders/standard/basic_vertex.glsl";
+    material.shaderConfig.fragmentSource = "../res/shaders/standard/basic_lit_fragment.glsl";
+    material.shaderConfig.geometrySource = "../res/shaders/standard/basic_lit_geometry.glsl";
 
     Renderer renderer;
 
-    Camera camera { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 90.0f, 0.001f, 1000.0f };
+    Camera camera { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 90.0f, 0.001f, 1000000.0f };
 
     SolarObject stefan(material, planeModel);
     stefan.position.z = 15.0f;
     stefan.eulerAngles.y = 180.0f;
-    SolarObject stefan2(material, planeModel2);
-    stefan2.position.z = 15.0f;
-    stefan2.eulerAngles.y = 180.0f;
 
-
-    float movementSpeed = 0.02f;
-    float mouseLookSensitivity = 0.02f;
+    float movementSpeed = 1.0f;
+    float mouseLookSensitivity = 1.0f;
     bool mouseLocked = false;
 
-    bool autoSpin = true;
+    bool autoSpin = false;
     float spinAmount = 0.2f;
 
     double lastFrame = 0.0;
@@ -147,13 +115,15 @@ int main()
         ImGui::NewFrame();
 
         renderer.Draw(camera, stefan);
-        renderer.Draw(camera, stefan2);
 
         if (autoSpin) stefan.eulerAngles.y += spinAmount;
         if (autoSpin && stefan.eulerAngles.y >= 359.9f) stefan.eulerAngles.y = 0.0f;
 
-        double deltaTime = glfwGetTime() - lastFrame;
-        lastFrame = deltaTime;
+        //#region Input and Movement
+
+        double time = glfwGetTime();
+        double deltaTime = time - lastFrame;
+        lastFrame = time;
 
         glm::vec2 rotationRad = camera.eulerAngles * glm::radians(1.0f);
         glm::vec3 cameraForward = {
@@ -204,6 +174,8 @@ int main()
             yOffset = 0;
         } else if(mouseLocked) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
+        //#endregion
+        //#region ImGui
         {
             ImGui::Begin("Model");
             ImGui::Text("Position");
@@ -216,9 +188,11 @@ int main()
             ImGui::SliderFloat("RotY", &stefan.eulerAngles.y, 0.0f, 360.0f);
             ImGui::SliderFloat("RotZ", &stefan.eulerAngles.z, 0.0f, 360.0f);
             ImGui::Text("Scale");
-            ImGui::SliderFloat("ScaleX", &stefan.scale.x, 0.0f, 20.0f);
-            ImGui::SliderFloat("ScaleY", &stefan.scale.y, 0.0f, 20.0f);
-            ImGui::SliderFloat("ScaleZ", &stefan.scale.z, 0.0f, 20.0f);
+            ImGui::InputFloat("ScaleX", &stefan.scale.x);
+            ImGui::InputFloat("ScaleY", &stefan.scale.y);
+            ImGui::InputFloat("ScaleZ", &stefan.scale.z);
+            ImGui::Text("Material");
+            ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 4.0f);
             ImGui::End();
         }
 
@@ -238,9 +212,9 @@ int main()
 
         {
             ImGui::Begin("View");
-            ImGui::SliderFloat("FOV", &camera.fov, 1.0f, 179.0f);
-            ImGui::SliderFloat("Movement Speed", &movementSpeed, 0.002f, .2f);
-            ImGui::SliderFloat("Mouse Sensitivity", &mouseLookSensitivity, 0.002f, .05f);
+            ImGui::SliderFloat("FOV", &camera.fov, 0.1f, 179.9f);
+            ImGui::SliderFloat("Movement Speed", &movementSpeed, 0.5f, 50.0f);
+            ImGui::SliderFloat("Mouse Sensitivity", &mouseLookSensitivity, .5f, 10.0f);
             ImGui::Text("Bloom Parameters");
 //            ImGui::SliderFloat("Intensity");
             ImGui::End();
@@ -248,6 +222,8 @@ int main()
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        //#endregion
 
         glfwSwapBuffers(window);
     }

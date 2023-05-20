@@ -3,6 +3,8 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
+uniform mat4 u_ViewPerspective;
+
 out vec3 g_Normal;
 
 void main() {
@@ -14,7 +16,7 @@ void main() {
 
     for (int i = 0; i < 3; i++) {
         g_Normal = normal;
-        gl_Position = gl_in[i].gl_Position;
+        gl_Position = u_ViewPerspective * gl_in[i].gl_Position;
         EmitVertex();
     }
     EndPrimitive();

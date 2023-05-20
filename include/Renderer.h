@@ -19,15 +19,17 @@ struct Camera {
     glm::vec2 eulerAngles; // No rolling eulerAngles
     float fov, zNear, zFar;
 
-    glm::mat4 PerspectiveViewMatrix() const {
+    glm::mat4 PerspectiveMatrix() const {
+        return glm::perspective(glm::radians(fov), 16.0f/9.0f, zNear, zFar);
+    }
+
+    glm::mat4 ViewMatrix() const {
         glm::vec3 rotRad = glm::vec3(glm::radians(eulerAngles.x), glm::radians(eulerAngles.y), 0.0f);
         glm::vec3 lookingDir = { glm::cos(rotRad.x) * glm::sin(rotRad.y),
                                  glm::sin(rotRad.x),
                                  glm::cos(rotRad.x) * glm::cos(rotRad.y)};
 
-        auto viewMat = glm::lookAt(position, position + lookingDir,glm::vec3(0.0f, 1.0f, 0.0f));
-
-        return glm::perspective(glm::radians(fov), 1.0f, zNear, zFar) * viewMat;
+        return glm::lookAt(position, position + lookingDir,glm::vec3(0.0f, 1.0f, 0.0f));
     }
 };
 

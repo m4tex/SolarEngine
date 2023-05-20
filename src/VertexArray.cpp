@@ -5,12 +5,15 @@
 #include "../include/VertexArray.h"
 #include "../include/VertexBufferLayout.h"
 #include "../include/Renderer.h"
+#include "iostream"
 
 VertexArray::VertexArray() {
+    std::cout << "construct " << m_RendererID << std::endl;
     glGenVertexArrays(1, &m_RendererID);
 }
 
 VertexArray::~VertexArray() {
+    std::cout << "destruct " << m_RendererID << std::endl;
     glDeleteVertexArrays(1, &m_RendererID);
 }
 
